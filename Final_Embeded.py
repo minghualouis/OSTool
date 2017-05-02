@@ -1,6 +1,16 @@
+#!/usr/bin/env python 
+
 from socket import *
+import sys
 import getpass
-import pwd, grp
+try:
+    import pwd
+    import grp
+except ImportError:
+    import winpwd as pwd
+    import win32net
+
+import platform
 
 def get_listening_ports():
     print("Below are the ports open in this computer: \n")
@@ -26,15 +36,23 @@ def get_current_user():
     print("Current User is: {} \n".format(getpass.getuser()))
 
 def get_user_group():
-    for p in pwd.getpwall():
-        print ("User: {}; Group: {}".format(p[0], grp.getgrgid(p[3])[0]))
+    if platform.system() == "Linux":
+        for p in pwd.getpwall():
+            print ("User: {}; Group: {}".format(p[0], grp.getgrgid(p[3])[0]))
+    elif platform.system() == "Windows":
+        for p in pwd.getpwall():
+            for groups in win32net.NetUserGetLocalGroups(platform.uname()[1],p[0]):
+                print ("User: {}; Group: {}".format(p[0], groups))
         
 if __name__ == "__main__":
-    get_current_user()
-    get_listening_ports()
-    get_user_group()
-    
-    
+    if sys.argv[1] == "p":
+        get_listening_ports()
+    elif sys.argv[1] == "u":
+        get_current_user()
+    elif sys.argv[1] == "g":
+        get_user_group()
+    else:
+        print("Error with the input, please check the command and arguments")
     
     
     
